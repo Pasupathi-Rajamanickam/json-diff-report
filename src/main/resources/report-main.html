@@ -1,0 +1,12 @@
+<div class="reportTable" id="report{{index}}" style="display: none" >
+<table class="topDetails">
+<tr><th>Source URL</th><th>Compare URL</th><th>Status</th></tr>
+<tr><td>{{sourceURL}}</td><td>{{compareURL}}</td><td>{{overAllStatus}}</td></tr>
+</table>
+<table class="compareTable">
+<tr><th>Source JSONPath</th><th>Source Value</th><th>Compare JSONPath</th><th>Compare Value</th><th>Status</th></tr>
+{{#diffResponse}}
+<tr><td>{{sourceTag}}</td><td>{{sourceValue}}</td><td>{{compareWithTag}}</td><td>{{compareWithValue}}</td><td>{{status}}</td></tr>
+{{/diffResponse}}
+</table>
+</div>

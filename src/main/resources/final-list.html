@@ -1,0 +1,13 @@
+</div>
+
+<div id="list">
+<table>
+<tr><th>Source URL</th><th>Compare URL</th><th>Status</th><th>Show Different</th></tr>
+{{#listReport}}
+<tr><td>{{sourceURL}}</td><td>{{compareURL}}</td><td>{{overAllStatus}}</td><td><a href="javascript:showReport({{index}})">Show Different</a></td></tr>
+{{/listReport}}
+</table>
+</div>
+
+</body>
+</html>

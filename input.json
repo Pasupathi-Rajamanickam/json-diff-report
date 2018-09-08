@@ -1,0 +1,56 @@
+{
+	"inputs": [
+		{
+			"urlSource": "https://api.stackexchange.com/2.2/questions/51227849?order=desc&sort=activity&site=stackoverflow",
+			"urlCompare": "https://api.stackexchange.com/2.2/questions/28668452?order=desc&sort=activity&site=stackoverflow",
+			"method": null,
+			"headersSource": {
+				"accept": "application/json"
+			},
+			"headersCompare": {
+				"accept": "application/json"
+			},
+			"requestSource": null,
+			"requestCompare": null
+		},
+		{
+      "urlSource": "https://api3.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400&date=today",
+      "urlCompare": "https://api3.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400&date=2018-09-10",
+      "method": null,
+      "headersSource": {
+        "accept": "application/json"
+      },
+      "headersCompare": {
+        "accept": "application/json"
+      },
+      "requestSource": null,
+      "requestCompare": null
+    },
+		{
+      "urlSource": "https://api.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400&date=today",
+      "urlCompare": "https://api.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400&date=2018-09-10",
+      "method": null,
+      "headersSource": {
+        "accept": "application/json"
+      },
+      "headersCompare": {
+        "accept": "application/json"
+      },
+      "requestSource": null,
+      "requestCompare": null
+    },
+    {
+      "urlSource": "http://api.oceandrivers.com/static/resources.json",
+      "urlCompare": "http://api.oceandrivers.com/static/resources.json",
+      "method": null,
+      "headersSource": {
+        "accept": "application/json"
+      },
+      "headersCompare": {
+        "accept": "application/json"
+      },
+      "requestSource": null,
+      "requestCompare": null
+    }
+	]
+}
