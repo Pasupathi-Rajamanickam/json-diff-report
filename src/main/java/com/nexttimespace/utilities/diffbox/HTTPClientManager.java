@@ -132,11 +132,7 @@ public class HTTPClientManager {
 		    Map<String, String> headersRequest =  (Map<String, String>) properties.get(Const.REQUEST_HEADER);
 		    
 		    for(Map.Entry<String, String> headerEntry : headersRequest.entrySet()) {
-		        if(headerEntry.getKey().equalsIgnoreCase("accept")){
-	               headers.setAccept(MediaType.parseMediaTypes(headerEntry.getValue()));
-	            }else{
-	                headers.add(headerEntry.getKey(), headerEntry.getValue());
-	            }
+	            headers.add(headerEntry.getKey(), headerEntry.getValue());
 		    }
 		}
 		
