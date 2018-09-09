@@ -1,5 +1,6 @@
 package com.nexttimespace.utilities.diffbox;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -11,12 +12,21 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
 import java.security.cert.X509Certificate;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
-import org.springframework.http.HttpEntity;
+import org.apache.http.util.EntityUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -97,10 +107,12 @@ public class HTTPClientManager {
 	}
 	
 	
+	
+	
 
 	public Map<String, Object> getResponse(Map<String, Object> properties) {
 		HttpHeaders headers = new HttpHeaders();
-		HttpEntity requestEntity = null;
+		org.springframework.http.HttpEntity requestEntity = null;
 		Map<String, Object> responseReturn = new LinkedHashMap<>();
 		HttpMethod method = null;
 		if (properties.get(Const.REQUEST_HEADER) != null && properties.get(Const.REQUEST_HEADER) instanceof String) {
@@ -144,16 +156,16 @@ public class HTTPClientManager {
 		
 		if (properties.get(Const.METHOD).toString().equals("GET")) {
 			method = HttpMethod.GET;
-			requestEntity = new HttpEntity<String>("", headers);
+			requestEntity = new org.springframework.http.HttpEntity<String>("", headers);
 		} else if (properties.get(Const.METHOD).toString().equals("POST")) {
 			method = HttpMethod.POST;
-			requestEntity = new HttpEntity<String>(properties.get(Const.REQUEST).toString(), headers);
+			requestEntity = new org.springframework.http.HttpEntity<String>(properties.get(Const.REQUEST).toString(), headers);
 		}else if (properties.get(Const.METHOD).toString().equals("PUT")) {
 			method = HttpMethod.PUT;
-			requestEntity = new HttpEntity<String>(properties.get(Const.REQUEST).toString(), headers);
+			requestEntity = new org.springframework.http.HttpEntity<String>(properties.get(Const.REQUEST).toString(), headers);
 		}else if (properties.get(Const.METHOD).toString().equals("DELETE")) {
 			method = HttpMethod.DELETE;
-			requestEntity = new HttpEntity<String>(properties.get(Const.REQUEST).toString(), headers);
+			requestEntity = new org.springframework.http.HttpEntity<String>(properties.get(Const.REQUEST).toString(), headers);
 		}
 		//StopWatch stopwatch = StopWatch.createStarted();
 		ResponseEntity<String> response = null;
@@ -200,5 +212,115 @@ public class HTTPClientManager {
 		//responseReturn.put(Const.TIME_ELASPED, stopwatch.getTime(TimeUnit.MILLISECONDS));
 		return responseReturn;
 	}
+	
+	public Map<String, Object> getResponseV2(Map<String, Object> properties) {
+	    CloseableHttpClient client = HttpClients.createDefault();
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity requestEntity = null;
+        Map<String, Object> responseReturn = new LinkedHashMap<>();
+        HttpMethod method = null;
+        if (properties.get(Const.REQUEST_HEADER) != null && properties.get(Const.REQUEST_HEADER) instanceof String) {
+            String header = properties.get(Const.REQUEST_HEADER).toString().trim();
+            if (!header.isEmpty()) {
+                String[] splitHeaderNewLine = header.split("\\r?\\n");
+                if (splitHeaderNewLine.length > 0) {
+                    for (String headerIterator : splitHeaderNewLine) {
+                        if (headerIterator.contains(":")) {
+                            String[] splitHedaer = headerIterator.split(":", 2);
+                            if(splitHedaer[0].equalsIgnoreCase("accept")){
+                                if(splitHedaer.length > 1){
+                                    headers.setAccept(MediaType.parseMediaTypes(splitHedaer[1]));
+                                }
+                            }else{
+                            if (splitHedaer.length >= 2) {
+                                headers.add(splitHedaer[0], splitHedaer[1]);
+                            } else {
+                                headers.add(splitHedaer[0], "");
+                            }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (properties.get(Const.REQUEST_HEADER) != null && properties.get(Const.REQUEST_HEADER) instanceof Map) {
+            Map<String, String> headersRequest =  (Map<String, String>) properties.get(Const.REQUEST_HEADER);
+            
+            for(Map.Entry<String, String> headerEntry : headersRequest.entrySet()) {
+                headers.add(headerEntry.getKey(), headerEntry.getValue());
+            }
+        }
+        
+        if(!commonHeaders.isEmpty()) {
+            for(Entry<String, String> entry: commonHeaders.entrySet()) {
+                headers.add(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        try {
+        
+        HttpRequestBase httpMethod = null;
+        if (properties.get(Const.METHOD).toString().equals("GET")) {
+            httpMethod = new HttpGet(properties.get(Const.URL).toString());
+        } else if (properties.get(Const.METHOD).toString().equals("POST")) {
+            httpMethod = new HttpPost(properties.get(Const.URL).toString());
+            StringEntity entity = new StringEntity(properties.get(Const.REQUEST).toString());
+            ((HttpPost)httpMethod).setEntity(entity);
+        }else if (properties.get(Const.METHOD).toString().equals("PUT")) {
+            httpMethod = new HttpPut(properties.get(Const.URL).toString());
+            StringEntity entity = new StringEntity(properties.get(Const.REQUEST).toString());
+            ((HttpPost)httpMethod).setEntity(entity);
+        }else if (properties.get(Const.METHOD).toString().equals("DELETE")) {
+            httpMethod = new HttpDelete(properties.get(Const.URL).toString());
+        }
+        
+        if (properties.get(Const.REQUEST_HEADER) != null && properties.get(Const.REQUEST_HEADER) instanceof Map) {
+            Map<String, String> headersRequest =  (Map<String, String>) properties.get(Const.REQUEST_HEADER);
+            
+            for(Map.Entry<String, String> headerEntry : headersRequest.entrySet()) {
+                httpMethod.setHeader(headerEntry.getKey(), headerEntry.getValue());
+            }
+        }
+        
+        if(!commonHeaders.isEmpty()) {
+            for(Entry<String, String> entry: commonHeaders.entrySet()) {
+                httpMethod.setHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        
+            HttpResponse response = client.execute(httpMethod);
+            HttpEntity entity = response.getEntity();
+            String body = EntityUtils.toString(entity, "UTF-8");
+            if(properties.get(Const.CHAR_SET) != null) {
+                try {
+                    String targetCharSet = properties.get(Const.TARGET_CHAR_SET) != null ? properties.get(Const.TARGET_CHAR_SET).toString() : "UTF-8"; 
+                    body = new String(body.getBytes(Charset.forName(properties.get(Const.CHAR_SET).toString())), targetCharSet);
+                    body = body.replaceAll("[^\\x00-\\x7F]", "");
+                }catch(Exception e) {
+                    System.out.println("Error using charSet" + e);
+                }
+            }
+            //responseReturn.put(Const.TIME_ELASPED, stopwatch.getTime(TimeUnit.MILLISECONDS));
+            responseReturn.put(Const.RESPONSE_STATUS, response.getStatusLine());
+            
+            responseReturn.put(Const.RESPONSE_LENGTH, body!=null?body.getBytes().length:0);
+            responseReturn.put(Const.RESPONSE, body!=null?body:"");
+            responseReturn.put(Const.RESPONSE_HEADER, response.getAllHeaders());
+        } catch(Exception exception){
+            responseReturn.put(Const.RESPONSE_LENGTH, "0");
+            responseReturn.put(Const.RESPONSE, exception.getMessage());
+            responseReturn.put(Const.RESPONSE_HEADER,"NA" );
+            responseReturn.put(Const.RESPONSE_STATUS, "NA");
+            responseReturn.put(Const.ERROR_RESPONSE, "true");
+        }
+        try {
+            client.close();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+        return responseReturn;
+    }
 
 }

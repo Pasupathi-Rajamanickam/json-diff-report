@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.nexttimespace.utilities</groupId>
 	<artifactId>json-diff-report</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 	<description>Provides JSON differences in HTML format</description>
 
 	<build>

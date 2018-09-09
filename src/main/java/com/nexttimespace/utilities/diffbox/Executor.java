@@ -49,7 +49,7 @@ public class Executor {
             reportFile = prepareReport();
         }
         int index = 0;
-        
+        int lastPercent = 0;
         List<Map<String, String>> finalList = new ArrayList<>();
         for (InputRequest.Input request : inputRequest.getInputs()) {
             Map<String, String> list = new LinkedHashMap<>();
@@ -67,7 +67,7 @@ public class Executor {
             if (StringUtils.isNotBlank(request.getRequestSource())) {
                 httpRequest.put(HTTPClientManager.Const.REQUEST, request.getRequestSource());
             }
-            Map<String, Object> response = httpClient.getResponse(httpRequest);
+            Map<String, Object> response = httpClient.getResponseV2(httpRequest);
 
             httpRequest = new LinkedHashMap<>();
             httpRequest.put(HTTPClientManager.Const.METHOD, StringUtils.isNotBlank(request.getMethod()) ? request.getMethod() : "GET");
@@ -78,7 +78,7 @@ public class Executor {
             if (StringUtils.isNotBlank(request.getRequestCompare())) {
                 httpRequest.put(HTTPClientManager.Const.REQUEST, request.getRequestCompare());
             }
-            Map<String, Object> responseCompare = httpClient.getResponse(httpRequest);
+            Map<String, Object> responseCompare = httpClient.getResponseV2(httpRequest);
             String status = "Failed";
             try {
                 status = appendCompareReport(response, responseCompare, reportFile, "" + index, request.getUrlSource(), request.getUrlCompare());
@@ -94,7 +94,11 @@ public class Executor {
             
             finalList.add(list);
             int percentOfClassPassed = (int) ((double)index * 100 / inputRequest.getInputs().size());
-            System.out.println(percentOfClassPassed + "% Completed");
+            
+            if(lastPercent != percentOfClassPassed) {
+                System.out.println(percentOfClassPassed + "% Completed");
+            }
+            lastPercent = percentOfClassPassed;
         }
         addListReport(finalList, reportFile);
         
