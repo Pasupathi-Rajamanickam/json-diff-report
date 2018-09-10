@@ -57,7 +57,7 @@ public class Executor {
             list.put("index", index + "");
             list.put("sourceURL", request.getUrlSource());
             list.put("compareURL", request.getUrlCompare());
-            
+
             Map<String, Object> httpRequest = new LinkedHashMap<>();
             httpRequest.put(HTTPClientManager.Const.METHOD, StringUtils.isNotBlank(request.getMethod()) ? request.getMethod() : "GET");
 
@@ -67,8 +67,14 @@ public class Executor {
             if (StringUtils.isNotBlank(request.getRequestSource())) {
                 httpRequest.put(HTTPClientManager.Const.REQUEST, request.getRequestSource());
             }
-            Map<String, Object> response = httpClient.getResponseV2(httpRequest);
 
+            Map<String, Object> response = null;
+
+            if (Boolean.valueOf(UtilityFunction.appProperties.get("useURLConnection") + "")) {
+                response = httpClient.getResponseV3(httpRequest);
+            } else {
+                response = httpClient.getResponseV2(httpRequest);
+            }
             httpRequest = new LinkedHashMap<>();
             httpRequest.put(HTTPClientManager.Const.METHOD, StringUtils.isNotBlank(request.getMethod()) ? request.getMethod() : "GET");
 
@@ -78,7 +84,14 @@ public class Executor {
             if (StringUtils.isNotBlank(request.getRequestCompare())) {
                 httpRequest.put(HTTPClientManager.Const.REQUEST, request.getRequestCompare());
             }
-            Map<String, Object> responseCompare = httpClient.getResponseV2(httpRequest);
+            Map<String, Object> responseCompare = null;
+
+            if (Boolean.valueOf(UtilityFunction.appProperties.get("useURLConnection") + "")) {
+                responseCompare = httpClient.getResponseV3(httpRequest);
+            } else {
+                responseCompare = httpClient.getResponseV2(httpRequest);
+            }
+
             String status = "Failed";
             try {
                 status = appendCompareReport(response, responseCompare, reportFile, "" + index, request.getUrlSource(), request.getUrlCompare());
@@ -86,25 +99,25 @@ public class Executor {
                 e.printStackTrace();
                 System.err.println("ERROR: Error Processing " + request.getUrlSource());
             }
-            if(status == null) {
+            if (status == null) {
                 list.put("overAllStatus", "Error");
             } else {
                 list.put("overAllStatus", status);
             }
-            
+
             finalList.add(list);
-            int percentOfClassPassed = (int) ((double)index * 100 / inputRequest.getInputs().size());
-            
-            if(lastPercent != percentOfClassPassed) {
+            int percentOfClassPassed = (int) ((double) index * 100 / inputRequest.getInputs().size());
+
+            if (lastPercent != percentOfClassPassed) {
                 System.out.println(percentOfClassPassed + "% Completed");
             }
             lastPercent = percentOfClassPassed;
         }
         addListReport(finalList, reportFile);
-        
+
         System.out.println("INFO: Compare process completed. Check report at " + reportFile);
     }
-    
+
     private static void addListReport(List<Map<String, String>> listReport, String filename) throws IOException {
         MustacheFactory mf = new DefaultMustacheFactory();
         Mustache mustache = mf.compile("final-list.html");
@@ -112,9 +125,9 @@ public class Executor {
         Map<String, Object> objectToTemplate = new LinkedHashMap<>();
         objectToTemplate.put("listReport", listReport);
         mustache.execute(writer, objectToTemplate).flush();
-        if(writer != null) {
-            String listReportHTML =  writer.toString();
-            if (listReportHTML !=null && !listReportHTML.isEmpty()) {
+        if (writer != null) {
+            String listReportHTML = writer.toString();
+            if (listReportHTML != null && !listReportHTML.isEmpty()) {
                 try (FileWriter fw = new FileWriter(filename, true); BufferedWriter bw = new BufferedWriter(fw); PrintWriter out = new PrintWriter(bw)) {
                     out.println(listReportHTML);
                 } catch (Exception e) {
@@ -122,7 +135,7 @@ public class Executor {
                 }
             }
         }
-        
+
     }
 
     private static String appendCompareReport(Map<String, Object> responseSource, Map<String, Object> responseCompare, String filename, String index, String sourceURL, String compareURL) throws JSONException, IOException {
@@ -130,13 +143,13 @@ public class Executor {
         String compareResponse = (String) responseCompare.get(HTTPClientManager.Const.RESPONSE);
         Map<String, String> compareReport = null;
         String returnStatus = null;
-        
+
         if (sourceResponse.startsWith("{") && compareResponse.startsWith("{")) {
             compareReport = jsonDiff.createCompareHTML(sourceResponse, compareResponse, index, sourceURL, compareURL);
         } else {
             System.err.println("WARN: Received Non JSON for " + sourceURL);
         }
-        if (compareReport !=null && !compareReport.isEmpty()) {
+        if (compareReport != null && !compareReport.isEmpty()) {
             try (FileWriter fw = new FileWriter(filename, true); BufferedWriter bw = new BufferedWriter(fw); PrintWriter out = new PrintWriter(bw)) {
                 out.println(compareReport.get("compareReport"));
             } catch (Exception e) {
@@ -153,7 +166,7 @@ public class Executor {
 
     private static String prepareReport() throws IOException {
         File reportFolder = new File("Report");
-        if(!reportFolder.exists()) {
+        if (!reportFolder.exists()) {
             reportFolder.mkdirs();
         }
         String reportFileName = getReportFileName();
